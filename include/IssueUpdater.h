@@ -1,41 +1,40 @@
 #ifndef ISSUEUPDATER_H
 #define ISSUEUPDATER_H
 
+#include "Session.h"
+
+#include <atomic>
 #include <thread>
 #include <curl/curl.h>
 
 class IssueUpdater {
  public:
-  IssueUpdater() {
-    curl_global_init(CURL_GLOBAL_ALL);
-    curl = curl_easy_init();
-    if(!curl) {
-      throw std::runtime_error("Could not initialise cURL");
-    }
-    updateThread = std::thread([this] { thread(); });
-  }
+  IssueUpdater();
 
-  ~IssueUpdater() {
-    curl_easy_cleanup(curl);
-    curl_global_cleanup();
-  }
+  ~IssueUpdater();
 
  private:
-  void thread() {
-    while(true) {
-      update();
-      using namespace std::chrono_literals;
-      std::this_thread::sleep_for(1min);
-    }
-  }
+  void theThread();
 
   void update();
+  void githubUpdate();
+  void redmineUpdate();
 
-  std::string wget(const std::string& url);
+  std::string wget(const std::string& url, bool isRedmine);
   std::thread updateThread;
 
-  CURL* curl;
+  CURL* curlGithub;
+  CURL* curlRedmine;
   CURLcode res;
+
+  Dbo::Session session;
+
+  std::atomic<bool> terminate;
+
+  bool initialUpdateGithub = true;
+  bool initialUpdateRedmine = true;
+  std::string lastUpdateGithub{"1970-01-01"};
+  std::string lastUpdateRedmine{"1970-01-01"};
 };
 
 #endif // ISSUEUPDATER_H

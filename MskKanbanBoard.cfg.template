@@ -1,8 +1,2 @@
 sqlite=1
-sqlite-database=DeployTool.db
-
-#mysql=1
-mysql-database=DeployTool
-mysql-user=DeployTool
-mysql-password=changeme
-mysql-host=localhost
+sqlite-database=MskKanbanBoard.db

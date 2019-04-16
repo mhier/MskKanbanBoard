@@ -3,7 +3,7 @@ project(MskKanbanBoard)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 01)
 set(${PROJECT_NAME}_MINOR_VERSION 00)
-set(${PROJECT_NAME}_PATCH_VERSION 03)
+set(${PROJECT_NAME}_PATCH_VERSION 00)
 include(cmake/set_version_numbers.cmake)
 
 include(cmake/enable_latest_cxx_support.cmake)
@@ -29,6 +29,10 @@ configure_file(${CMAKE_SOURCE_DIR}/MskKanbanBoard.css ${CMAKE_BINARY_DIR}/Formal
 
 aux_source_directory(${CMAKE_SOURCE_DIR}/src SOURCE)
 include_directories(${CMAKE_SOURCE_DIR}/include)
+
+# json11 as a sub project
+set(SOURCE ${SOURCE} ${CMAKE_SOURCE_DIR}/json11/json11.cpp)
+include_directories(${CMAKE_SOURCE_DIR}/json11)
 
 add_executable(${TARGET} ${SOURCE})
 target_link_libraries(${TARGET} ${WT_CONNECTOR} Wt::DboMySQL Wt::DboSqlite3 ${Boost_LIBRARIES} ${CURL_LIBRARIES})

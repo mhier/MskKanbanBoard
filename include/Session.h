@@ -19,8 +19,7 @@ using namespace Wt;
 
 typedef Auth::Dbo::UserDatabase<AuthInfo> UserDatabase;
 
-// List of logbooks we can post to. This is part of the logbook URL
-static const std::vector<std::string> logbooks{"TESTelog", "XFELelog"};
+void getDatabaseSession(Dbo::Session& session);
 
 class Session {
  public:

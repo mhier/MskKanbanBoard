@@ -23,7 +23,7 @@
 
 #include <boost/program_options.hpp>
 
-#include "Form.h"
+#include "Issue.h"
 
 namespace dbo = Wt::Dbo;
 namespace po = boost::program_options;
@@ -42,29 +42,16 @@ namespace {
 
 } // namespace
 
-void Session::configureAuth() {
-  myAuthService.setAuthTokensEnabled(true, "FormalisedLogCookie");
-  myAuthService.setEmailVerificationEnabled(true);
-
-  auto verifier = std::make_unique<Auth::PasswordVerifier>();
-  verifier->addHashFunction(std::make_unique<Auth::BCryptHashFunction>(7));
-
-  myPasswordService.setVerifier(std::move(verifier));
-  myPasswordService.setStrengthValidator(std::make_unique<Auth::PasswordStrengthValidator>());
-  myPasswordService.setAttemptThrottlingEnabled(true);
-}
-
-Session::Session() {
+void getDatabaseSession(Dbo::Session& session_) {
   po::options_description options("Allowed options");
   options.add_options()("sqlite", "use the sqlite database backend")(
       "sqlite-database", po::value<std::string>(), "file name of the sqlite data base")(
       "mysql", "use the MySQL database backend")("mysql-database", po::value<std::string>(), "MySQL database name")(
-      "mysql-user", po::value<std::string>(), "MySQL database user name")("mysql-password",
-      po::value<std::string>(),
+      "mysql-user", po::value<std::string>(), "MySQL database user name")("mysql-password", po::value<std::string>(),
       "MySQL database password")("mysql-host", po::value<std::string>(), "MySQL database host");
 
   po::variables_map vm;
-  store(po::parse_config_file<char>("FormalisedLog.cfg", options), vm);
+  store(po::parse_config_file<char>("MskKanbanBoard.cfg", options), vm);
   po::notify(vm);
 
   if(vm.count("sqlite") && vm.count("mysql")) {
@@ -93,9 +80,7 @@ Session::Session() {
       exit(1);
     }
     theDB = std::make_unique<Wt::Dbo::backend::MySQL>(vm["mysql-database"].as<std::string>(),
-        vm["mysql-user"].as<std::string>(),
-        vm["mysql-password"].as<std::string>(),
-        vm["mysql-host"].as<std::string>());
+        vm["mysql-user"].as<std::string>(), vm["mysql-password"].as<std::string>(), vm["mysql-host"].as<std::string>());
   }
   // theDB->setProperty("show-queries", "true");
   session_.setConnection(std::move(theDB));
@@ -104,9 +89,8 @@ Session::Session() {
   session_.mapClass<AuthInfo>("auth_info");
   session_.mapClass<AuthInfo::AuthIdentityType>("auth_identity");
   session_.mapClass<AuthInfo::AuthTokenType>("auth_token");
-  session_.mapClass<Form>("forms");
-  session_.mapClass<FormField>("formfields");
-  users_ = std::make_unique<UserDatabase>(session_);
+  session_.mapClass<Issue>("issues");
+  session_.mapClass<IssueReference>("issueReferences");
 
   dbo::Transaction transaction(session_);
   bool initialiseDatabase = false;
@@ -126,14 +110,23 @@ Session::Session() {
   file << session_.tableCreationSql();
   file.close();
 
-  if(initialiseDatabase) {
-    /*
-     * Add a default admin/admin account
-     */
-    registerUser("admin", "admin@example.com", "admin");
-  }
-
   transaction.commit();
+}
+
+void Session::configureAuth() {
+  myAuthService.setAuthTokensEnabled(true, "MskKanbanBoardCookie");
+  myAuthService.setEmailVerificationEnabled(true);
+
+  auto verifier = std::make_unique<Auth::PasswordVerifier>();
+  verifier->addHashFunction(std::make_unique<Auth::BCryptHashFunction>(7));
+
+  myPasswordService.setVerifier(std::move(verifier));
+  myPasswordService.setStrengthValidator(std::make_unique<Auth::PasswordStrengthValidator>());
+  myPasswordService.setAttemptThrottlingEnabled(true);
+}
+
+Session::Session() {
+  getDatabaseSession(session_);
 }
 
 Session::~Session() {}

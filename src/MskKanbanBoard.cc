@@ -18,10 +18,8 @@
 
 #include "Session.h"
 #include "MskKanbanBoard.h"
-#include "EditForm.h"
-#include "ShowForm.h"
 #include "Welcome.h"
-#include "Form.h"
+#include "Issue.h"
 #include "Version.h"
 
 MskKanbanBoard::MskKanbanBoard() {
@@ -49,12 +47,6 @@ void MskKanbanBoard::handleInternalPath(const std::string& internalPath) {
   contentStack_->clear();
   if(internalPath == "/") {
     contentStack_->addWidget(std::make_unique<Welcome>(session_));
-  }
-  else if(internalPath == "/edit") {
-    contentStack_->addWidget(std::make_unique<EditForm>(session_));
-  }
-  else if(internalPath.substr(0, 6) == "/show/") {
-    contentStack_->addWidget(std::make_unique<ShowForm>(session_, internalPath.substr(6)));
   }
   else {
     WApplication::instance()->setInternalPath("/", true);
