@@ -47,6 +47,8 @@ class Issue {
   int lastChange;
   Wt::Dbo::collection<Wt::Dbo::ptr<IssueReference>> issuesDoneWhileInProgress;
 
+  void report_isOpen(bool isOpen, Wt::Dbo::Session& session);
+
   static constexpr size_t identifierLength{20};
 
   template<class Action>
@@ -79,5 +81,39 @@ namespace Wt { namespace Dbo {
     static const char* surrogateIdField() { return 0; }
   };
 }} // namespace Wt::Dbo
+
+/**********************************************************************************************************************/
+/**********************************************************************************************************************/
+
+inline void Issue::report_isOpen(bool _isOpen, Wt::Dbo::Session& session) {
+  isOpen = _isOpen;
+
+  // find all issues currently in progress
+  auto issues = session.find<Issue>()
+                    .where("isOpen = 1")
+                    .where("isAssigned != 0")
+                    .where("isDesign = 0")
+                    .where("isPostponed = 0")
+                    .resultList();
+  for(auto issue : issues) {
+    // the issue is being reopened: remove us from issuesDoneWhileInProgress
+    if(isOpen) {
+      // find ourselves in issuesDoneWhileInProgress and remove
+      auto result = issue->issuesDoneWhileInProgress.find().where("identifier = ?").bind(identifier).resultList();
+      if(result.size() > 0) {
+        issue.modify()->issuesDoneWhileInProgress.erase(result.front());
+        result.front().remove();
+      }
+    }
+    // the issue is being closed: add us to issuesDoneWhileInProgress
+    else {
+      Wt::Dbo::ptr<IssueReference> ir(std::make_unique<IssueReference>());
+      ir.modify()->identifier = identifier;
+      issue.modify()->issuesDoneWhileInProgress.insert(ir);
+    }
+  }
+}
+
+/**********************************************************************************************************************/
 
 #endif /* INCLUDE_FORM_H_ */

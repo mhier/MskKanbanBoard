@@ -208,7 +208,7 @@ void IssueUpdater::githubUpdate() {
       }
       bool isOpen = (item["state"].string_value() != "closed");
       if(issue->isOpen != isOpen) {
-        issue.modify()->isOpen = isOpen;
+        issue.modify()->report_isOpen(isOpen, session);
         statusChange = true;
       }
       if(statusChange) {
@@ -349,7 +349,7 @@ void IssueUpdater::redmineUpdate() {
       }
       bool isOpen = (item["status"]["name"].string_value() != "Closed");
       if(issue->isOpen != isOpen) {
-        issue.modify()->isOpen = isOpen;
+        issue.modify()->report_isOpen(isOpen, session);
         statusChange = true;
       }
       if(statusChange) {
