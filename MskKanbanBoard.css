@@ -50,3 +50,7 @@
 .urgent {
   border: 2px solid red;
 }
+
+h5 {
+  font-weight: bold;
+}

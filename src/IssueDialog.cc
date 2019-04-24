@@ -20,7 +20,21 @@ IssueDialog::IssueDialog(Session& session, Wt::Dbo::ptr<Issue> issue) : session_
   titleBar()->addWidget(
       std::make_unique<Wt::WText>("<h4>" + issue->project + " #" + std::to_string(issue->id) + "</h4>"));
 
-  contents()->addWidget(std::make_unique<Wt::WText>(""));
+  contents()->addWidget(std::make_unique<Wt::WText>("<h5>" + issue->title + "</h5>"));
+  contents()->addWidget(std::make_unique<Wt::WText>(WString("<p>is open: {1}</p>").arg(std::to_string(issue->isOpen))));
+  contents()->addWidget(
+      std::make_unique<Wt::WText>(WString("<p>is assigned: {1}</p>").arg(std::to_string(issue->isAssigned))));
+  contents()->addWidget(std::make_unique<Wt::WText>(WString("<p>assignee: {1}</p>").arg(issue->assignee)));
+  contents()->addWidget(
+      std::make_unique<Wt::WText>(WString("<p>is design: {1}</p>").arg(std::to_string(issue->isDesign))));
+  contents()->addWidget(
+      std::make_unique<Wt::WText>(WString("<p>is design child: {1}</p>").arg(std::to_string(issue->isDesignChild))));
+  contents()->addWidget(std::make_unique<Wt::WText>(
+      WString("<p>is ready for implementation: {1}</p>").arg(std::to_string(issue->isReadyForImplementation))));
+  contents()->addWidget(
+      std::make_unique<Wt::WText>(WString("<p>is postponed: {1}</p>").arg(std::to_string(issue->isPostponed))));
+  contents()->addWidget(
+      std::make_unique<Wt::WText>(WString("<p>is removed: {1}</p>").arg(std::to_string(issue->isRemoved))));
 
   if(!issue->isOpen) {
     auto remove = footer()->addWidget(std::make_unique<Wt::WPushButton>("Remove from board"));
