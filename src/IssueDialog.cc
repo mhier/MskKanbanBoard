@@ -36,20 +36,30 @@ IssueDialog::IssueDialog(Session& session, Wt::Dbo::ptr<Issue> issue) : session_
   contents()->addWidget(
       std::make_unique<Wt::WText>(WString("<p>is removed: {1}</p>").arg(std::to_string(issue->isRemoved))));
 
-  if(!issue->isOpen) {
-    auto remove = footer()->addWidget(std::make_unique<Wt::WPushButton>("Remove from board"));
-    remove->clicked().connect(this, [this] {
-      auto button = Wt::WMessageBox::show("Remove issue permanently from board?",
-          "Are you sure you want to remove this issue from the board? Only the ticket master should do "
-          "this, after checking this issue fulfills its definition of done.",
-          Wt::StandardButton::Yes | Wt::StandardButton::No);
-      if(button == Wt::StandardButton::Yes) {
-        Wt::Dbo::Transaction transaction(session_.session_);
-        issue_.modify()->isRemoved = true;
-        this->hide();
-        Wt::WApplication::instance()->setInternalPath("/", true);
-      }
-    });
+  if(issue->isOpen) {
+    /*    if(!issue->isAssigned && !issue->isDesign) {
+      auto move = footer()->addWidget(std::make_unique<Wt::WPushButton>("Move to ready for implementation"));
+      move->clicked().connect(this, [=] { issue.modify()->moveReadyForImplementation(); });
+    } */
+  }
+  else {
+    if(!issue->isRemoved) {
+      //auto reopen = footer()->addWidget(std::make_unique<Wt::WPushButton>("Reopen"));
+
+      auto remove = footer()->addWidget(std::make_unique<Wt::WPushButton>("Remove from board"));
+      remove->clicked().connect(this, [this] {
+        auto button = Wt::WMessageBox::show("Remove issue permanently from board?",
+            "Are you sure you want to remove this issue from the board? Only the ticket master should do "
+            "this, after checking this issue fulfills its definition of done.",
+            Wt::StandardButton::Yes | Wt::StandardButton::No);
+        if(button == Wt::StandardButton::Yes) {
+          Wt::Dbo::Transaction transaction(session_.session_);
+          issue_.modify()->isRemoved = true;
+          this->hide();
+          Wt::WApplication::instance()->setInternalPath("/", true);
+        }
+      });
+    }
   }
 
   auto open = footer()->addWidget(std::make_unique<Wt::WPushButton>("Open in tracker"));
