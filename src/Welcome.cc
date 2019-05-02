@@ -145,7 +145,18 @@ void Welcome::showIssues(Wt::Dbo::collection<Wt::Dbo::ptr<Issue>>& issues, Wt::W
   auto now =
       std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
   for(auto issue : issues) {
-    auto container = widget->addWidget(std::make_unique<Wt::WContainerWidget>());
+    Wt::WContainerWidget* container;
+
+    if(issue->isOpen) {
+      Wt::WLink link = Wt::WLink(issue->url);
+      link.setTarget(Wt::LinkTarget::NewWindow);
+      auto anchor = widget->addWidget(std::make_unique<Wt::WAnchor>(link));
+      container = anchor->addWidget(std::make_unique<Wt::WContainerWidget>());
+    }
+    else {
+      container = widget->addWidget(std::make_unique<Wt::WContainerWidget>());
+    }
+
     container->setStyleClass("issue");
     container->addStyleClass("panel");
     container->addStyleClass("panel-default");
@@ -191,9 +202,11 @@ void Welcome::showIssues(Wt::Dbo::collection<Wt::Dbo::ptr<Issue>>& issues, Wt::W
     auto w_age = container->addWidget(std::make_unique<WText>(s_age));
     w_age->setStyleClass("age");
 
-    container->clicked().connect([=] {
-      issueDialog_ = std::make_unique<IssueDialog>(session_, issue);
-      issueDialog_->show();
-    });
+    if(!issue->isOpen) {
+      container->clicked().connect([=] {
+        issueDialog_ = std::make_unique<IssueDialog>(session_, issue);
+        issueDialog_->show();
+      });
+    }
   }
 }
