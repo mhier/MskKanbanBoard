@@ -15,6 +15,7 @@
 #include <Wt/WGroupBox.h>
 
 #include "Issue.h"
+#include "IssueUpdater.h"
 
 Welcome::Welcome(Session& session) : session_(session) {
   clear();
@@ -23,6 +24,11 @@ Welcome::Welcome(Session& session) : session_(session) {
 
   dbo::Transaction transaction(session_.session_);
   Wt::Dbo::collection<Wt::Dbo::ptr<Issue>> issues;
+
+  // Header
+  auto infoAge = std::time(nullptr) - IssueUpdater::lastUpdate;
+  auto header = addWidget(std::make_unique<Wt::WText>("Last update: " + std::to_string(infoAge) + " seconds ago"));
+  header->setStyleClass("lastUpdate");
 
   // Selected
   issues = session_.session_.find<Issue>()

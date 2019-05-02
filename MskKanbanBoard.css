@@ -1,3 +1,9 @@
+.lastUpdate {
+  margin-bottom: 10px;
+  display: block;
+  font-size: 0.66pc;
+}
+
 .container {
   width: 100%;
 }

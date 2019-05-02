@@ -35,6 +35,9 @@ class IssueUpdater {
   bool initialUpdateRedmine = true;
   std::string lastUpdateGithub{"1970-01-01"};
   std::string lastUpdateRedmine{"1970-01-01"};
+
+ public:
+  static std::atomic<std::time_t> lastUpdate;
 };
 
 #endif // ISSUEUPDATER_H

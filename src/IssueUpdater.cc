@@ -7,6 +7,8 @@
 #include "Issue.h"
 #include "json11.hpp"
 
+std::atomic<std::time_t> IssueUpdater::lastUpdate;
+
 /**********************************************************************************************************************/
 
 inline size_t curlWriteFunction(void* ptr, size_t, size_t nmemb, void* userdata) {
@@ -93,6 +95,7 @@ void IssueUpdater::update() {
   Dbo::Transaction transaction(session);
   githubUpdate();
   redmineUpdate();
+  lastUpdate = std::time(nullptr);
 }
 
 /**********************************************************************************************************************/
