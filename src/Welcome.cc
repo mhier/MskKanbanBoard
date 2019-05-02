@@ -32,8 +32,8 @@ void Welcome::update() {
   // Header
   auto infoAge = std::time(nullptr) - IssueUpdater::lastUpdate;
   auto updateIn = 62 - infoAge;
-  auto header = addWidget(std::make_unique<Wt::WText>("Last update: " + std::to_string(infoAge) +
-      " seconds ago. Auto-update in " + std::to_string(updateIn) + " seconds."));
+  auto header = addWidget(std::make_unique<Wt::WText>("Last database update: " + std::to_string(infoAge) +
+      " seconds ago. Auto-reload in " + std::to_string(updateIn) + " seconds."));
   header->setStyleClass("lastUpdate");
 
   // Set refresh timer
