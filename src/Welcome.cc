@@ -18,6 +18,10 @@
 #include "IssueUpdater.h"
 
 Welcome::Welcome(Session& session) : session_(session) {
+  update();
+}
+
+void Welcome::update() {
   clear();
 
   auto user = session_.user();
@@ -27,8 +31,16 @@ Welcome::Welcome(Session& session) : session_(session) {
 
   // Header
   auto infoAge = std::time(nullptr) - IssueUpdater::lastUpdate;
-  auto header = addWidget(std::make_unique<Wt::WText>("Last update: " + std::to_string(infoAge) + " seconds ago"));
+  auto updateIn = 62 - infoAge;
+  auto header = addWidget(std::make_unique<Wt::WText>("Last update: " + std::to_string(infoAge) +
+      " seconds ago. Auto-update in " + std::to_string(updateIn) + " seconds."));
   header->setStyleClass("lastUpdate");
+
+  // Set refresh timer
+  updateTimer.setSingleShot(true);
+  updateTimer.setInterval(std::chrono::milliseconds(updateIn * 1000));
+  updateTimer.timeout().connect([this] { update(); });
+  updateTimer.start();
 
   // Selected
   issues = session_.session_.find<Issue>()
