@@ -46,6 +46,12 @@
   color: #007777;
   padding-top: 5px;
 }
+.issue .state {
+  display: inline;
+  font-style: italic;
+  color: red;
+  padding-top: 5px;
+}
 .issue .age {
   display: block;
   bottom: 5px;
@@ -53,6 +59,9 @@
 }
 .design {
   background-color: #7FFFFF;
+}
+.review {
+  background-color: #AAFFAA;
 }
 .urgent {
   border: 2px solid red;

@@ -30,10 +30,12 @@ void Welcome::update() {
   Wt::Dbo::collection<Wt::Dbo::ptr<Issue>> issues;
 
   // Header
-  auto infoAge = std::time(nullptr) - IssueUpdater::lastUpdate;
+  std::time_t lastUpdate = IssueUpdater::lastUpdate;
+  auto infoAge = std::time(nullptr) - lastUpdate;
   auto updateIn = 62 - infoAge;
-  auto header = addWidget(std::make_unique<Wt::WText>("Last database update: " + std::to_string(infoAge) +
-      " seconds ago. Auto-reload in " + std::to_string(updateIn) + " seconds."));
+  std::string sLastUpdate = std::ctime(&lastUpdate);
+  auto header = addWidget(std::make_unique<Wt::WText>("Last database update: " + sLastUpdate + " (" +
+      std::to_string(infoAge) + " seconds ago). Auto-reload in " + std::to_string(updateIn) + " seconds."));
   header->setStyleClass("lastUpdate");
 
   // Set refresh timer
@@ -42,21 +44,40 @@ void Welcome::update() {
   updateTimer.timeout().connect([this] { update(); });
   updateTimer.start();
 
-  // Selected
+  // Pre-selected
   issues = session_.session_.find<Issue>()
                .where("isOpen = 1")
                .where("isAssigned = 0")
                .where("isDesignChild = 0")
                .where("isReadyForImplementation = 0")
                .where("isPostponed = 0")
+               .where("isDesign = 0")
                .orderBy("lastChange")
                .resultList();
   auto selectedPanel = addWidget(std::make_unique<Wt::WPanel>());
-  selectedPanel->setTitle(WString("Selected ({1})").arg(issues.size()));
+  selectedPanel->setTitle(WString("Preselected ({1})").arg(issues.size()));
   selectedPanel->addStyleClass("centered-example");
   selectedPanel->setCollapsible(true);
+  selectedPanel->collapse();
   auto selected = selectedPanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
   showIssues(issues, selected);
+
+  // Ready for design
+  issues = session_.session_.find<Issue>()
+               .where("isOpen = 1")
+               .where("isAssigned = 0")
+               .where("isDesignChild = 0")
+               .where("isReadyForImplementation = 0")
+               .where("isPostponed = 0")
+               .where("isDesign = 1")
+               .orderBy("lastChange")
+               .resultList();
+  auto readyForDesignPanel = addWidget(std::make_unique<Wt::WPanel>());
+  readyForDesignPanel->setTitle(WString("Ready for design ({1})").arg(issues.size()));
+  readyForDesignPanel->addStyleClass("centered-example");
+  readyForDesignPanel->setCollapsible(true);
+  auto readyForDesign = readyForDesignPanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
+  showIssues(issues, readyForDesign);
 
   // Design in progress
   issues = session_.session_.find<Issue>()
@@ -86,6 +107,7 @@ void Welcome::update() {
   designDonePanel->setTitle(WString("Childs of design tickets ({1})").arg(issues.size()));
   designDonePanel->addStyleClass("centered-example");
   designDonePanel->setCollapsible(true);
+  designDonePanel->collapse();
   auto designDone = designDonePanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
   showIssues(issues, designDone);
 
@@ -179,6 +201,7 @@ void Welcome::showIssues(Wt::Dbo::collection<Wt::Dbo::ptr<Issue>>& issues, Wt::W
     container->addStyleClass("panel");
     container->addStyleClass("panel-default");
     if(issue->isDesign) container->addStyleClass("design");
+    if(issue->isReview) container->addStyleClass("review");
     if(issue->priority == Priority::urgent) container->addStyleClass("urgent");
 
     auto w_head = container->addWidget(std::make_unique<WText>(WString("{1} #{2}").arg(issue->project).arg(issue->id)));
@@ -190,6 +213,23 @@ void Welcome::showIssues(Wt::Dbo::collection<Wt::Dbo::ptr<Issue>>& issues, Wt::W
     if(issue->assignee != "") {
       auto w_assignee = container->addWidget(std::make_unique<WText>(WString("{1}").arg(issue->assignee)));
       w_assignee->setStyleClass("assignee");
+    }
+
+    if(issue->priority == Priority::urgent) {
+      auto w_state = container->addWidget(std::make_unique<WText>("urgent "));
+      w_state->setStyleClass("state");
+    }
+    if(issue->isDesign) {
+      auto w_state = container->addWidget(std::make_unique<WText>("design "));
+      w_state->setStyleClass("state");
+    }
+    if(issue->isReview && issue->assignee == "") {
+      auto w_state = container->addWidget(std::make_unique<WText>("review required "));
+      w_state->setStyleClass("state");
+    }
+    if(issue->isReview && issue->assignee != "") {
+      auto w_state = container->addWidget(std::make_unique<WText>("in review "));
+      w_state->setStyleClass("state");
     }
 
     int n_age = now - issue->lastChange;

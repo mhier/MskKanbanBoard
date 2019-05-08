@@ -41,6 +41,7 @@ class Issue {
   bool isDesignChild;
   bool isReadyForImplementation;
   bool isRemoved;
+  bool isReview;
   std::string title;
   std::string assignee;
   std::string url;
@@ -64,6 +65,7 @@ class Issue {
     Wt::Dbo::field(a, isDesignChild, "isDesignChild");
     Wt::Dbo::field(a, isReadyForImplementation, "isReadyForImplementation");
     Wt::Dbo::field(a, isRemoved, "isRemoved");
+    Wt::Dbo::field(a, isReview, "isReview");
     Wt::Dbo::field(a, title, "title");
     Wt::Dbo::field(a, assignee, "assignee");
     Wt::Dbo::field(a, url, "url");

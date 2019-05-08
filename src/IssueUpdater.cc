@@ -145,12 +145,14 @@ void IssueUpdater::githubUpdate() {
       issue.modify()->isReadyForImplementation = false;
       issue.modify()->isPostponed = false;
       issue.modify()->isRemoved = false;
+      issue.modify()->isReview = false;
       issue.modify()->priority = Priority::normal;
       for(auto& label : item["labels"].array_items()) {
         if(label["name"] == "umbrella") issue.modify()->isDesign = true;
         if(label["name"] == "umbrellaChild") issue.modify()->isDesignChild = true;
         if(label["name"] == "postponed") issue.modify()->isPostponed = true;
         if(label["name"] == "readyForImplementation") issue.modify()->isReadyForImplementation = true;
+        if(label["name"] == "review") issue.modify()->isReview = true;
         if(label["name"] == "urgent") issue.modify()->priority = Priority::urgent;
       }
       issue.modify()->isOpen = item["state"].string_value() != "closed";
@@ -182,12 +184,14 @@ void IssueUpdater::githubUpdate() {
       bool isDesignChild = false;
       bool isReadyForImplementation = false;
       bool isPostponed = false;
+      bool isReview = false;
       Priority priority = Priority::normal;
       for(auto& label : item["labels"].array_items()) {
         if(label["name"] == "umbrella") isDesign = true;
         if(label["name"] == "umbrellaChild") isDesignChild = true;
         if(label["name"] == "postponed") isPostponed = true;
         if(label["name"] == "readyForImplementation") isReadyForImplementation = true;
+        if(label["name"] == "review") isReview = true;
         if(label["name"] == "urgent") priority = Priority::urgent;
       }
       if(issue->isDesign != isDesign) {
@@ -204,6 +208,10 @@ void IssueUpdater::githubUpdate() {
       }
       if(issue->isReadyForImplementation != isReadyForImplementation) {
         issue.modify()->isReadyForImplementation = isReadyForImplementation;
+        statusChange = true;
+      }
+      if(issue->isReview != isReview) {
+        issue.modify()->isReview = isReview;
         statusChange = true;
       }
       if(issue->priority != priority) {
@@ -292,6 +300,7 @@ void IssueUpdater::redmineUpdate() {
         }
       }
       issue.modify()->isOpen = (item["status"]["name"].string_value() != "Closed");
+      issue.modify()->isReview = (item["status"]["name"].string_value() == "Feedback");
 
       boost::posix_time::ptime epoch(boost::gregorian::date(1970, 1, 1));
       auto tstring = item["updated_on"].string_value();
@@ -353,6 +362,11 @@ void IssueUpdater::redmineUpdate() {
       bool isOpen = (item["status"]["name"].string_value() != "Closed");
       if(issue->isOpen != isOpen) {
         issue.modify()->report_isOpen(isOpen, session);
+        statusChange = true;
+      }
+      bool isReview = (item["status"]["name"].string_value() == "Feedback");
+      if(issue->isReview != isReview) {
+        issue.modify()->isReview = isReview;
         statusChange = true;
       }
       if(statusChange) {
