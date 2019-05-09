@@ -11,11 +11,10 @@
 using namespace Wt;
 
 class IssueDialog : public WDialog {
-  public:
-  IssueDialog(Session &session, Wt::Dbo::ptr<Issue> issue);
+ public:
+  IssueDialog(Session& session, Wt::Dbo::ptr<Issue> issue);
 
-  Session &session_;
+  Session& session_;
   Wt::Dbo::ptr<Issue> issue_;
-
 };
 #endif // ISSUEDIALOG_H

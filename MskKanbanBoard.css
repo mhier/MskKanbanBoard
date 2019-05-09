@@ -4,9 +4,18 @@
   font-size: 0.66pc;
 }
 
+.limitExceeded > span {
+  color: red;
+}
+
+.limitMatched > span {
+  color: #FF7F00;
+}
+
 .container {
   width: 100%;
 }
+
 
 .issue {
   display: inline-block;

@@ -7,6 +7,7 @@
 
 #include "Session.h"
 #include "IssueDialog.h"
+#include "KanbanLimitDialog.h"
 
 #include <Wt/Dbo/Dbo.h>
 #include <Wt/WContainerWidget.h>
@@ -26,6 +27,7 @@ class Welcome : public WContainerWidget {
  private:
   Session& session_;
   std::unique_ptr<IssueDialog> issueDialog_;
+  std::unique_ptr<KanbanLimitDialog> limitDialog_;
   Wt::WTimer updateTimer;
 };
 

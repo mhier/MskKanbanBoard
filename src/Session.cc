@@ -24,6 +24,7 @@
 #include <boost/program_options.hpp>
 
 #include "Issue.h"
+#include "KanbanLimit.h"
 
 namespace dbo = Wt::Dbo;
 namespace po = boost::program_options;
@@ -90,6 +91,7 @@ void getDatabaseSession(Dbo::Session& session_) {
   session_.mapClass<AuthInfo::AuthIdentityType>("auth_identity");
   session_.mapClass<AuthInfo::AuthTokenType>("auth_token");
   session_.mapClass<Issue>("issues");
+  session_.mapClass<KanbanLimit>("kanbanLimit");
   session_.mapClass<IssueReference>("issueReferences");
 
   dbo::Transaction transaction(session_);
