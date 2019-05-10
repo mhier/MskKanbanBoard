@@ -296,6 +296,7 @@ void Welcome::showIssues(Wt::Dbo::collection<Wt::Dbo::ptr<Issue>>& issues, Wt::W
     if(issue->isDesign) container->addStyleClass("design");
     if(issue->isReview) container->addStyleClass("review");
     if(issue->priority == Priority::urgent) container->addStyleClass("urgent");
+    if(!issue->isOpen || issue->isPostponed) container->addStyleClass("inactive");
 
     auto w_head = container->addWidget(std::make_unique<WText>(WString("{1} #{2}").arg(issue->project).arg(issue->id)));
     w_head->setStyleClass("head");

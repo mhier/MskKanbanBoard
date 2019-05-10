@@ -76,6 +76,14 @@
   border: 2px solid red;
 }
 
+.inactive {
+  background-color: #AAAAAA;
+}
+
+.inactive .design {
+background-color: #55AAAA;
+}
+
 h5 {
   font-weight: bold;
 }
