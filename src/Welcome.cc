@@ -4,6 +4,8 @@
 
 #include "Welcome.h"
 
+#include <cmath>
+
 #include <Wt/WText.h>
 #include <Wt/WTable.h>
 #include <Wt/WVBoxLayout.h>
