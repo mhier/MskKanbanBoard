@@ -29,6 +29,12 @@ class Welcome : public WContainerWidget {
   std::unique_ptr<IssueDialog> issueDialog_;
   std::unique_ptr<KanbanLimitDialog> limitDialog_;
   Wt::WTimer updateTimer;
+
+  Wt::WText* header;
+  Wt::WPanel *selectedPanel, *readyForDesignPanel, *designProgressPanel, *designDonePanel, *readyForImplPanel,
+      *implProgressPanel, *postponedPanel, *donePanel, *removedPanel;
+  Wt::WContainerWidget *selected, *readyForDesign, *designProgess, *designDone, *readyForImpl, *implProgess, *postponed,
+      *done, *removed;
 };
 
 #endif // INCLUDE_WELCOME_H_

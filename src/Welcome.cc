@@ -18,15 +18,70 @@
 #include "IssueUpdater.h"
 
 Welcome::Welcome(Session& session) : session_(session) {
+  // Header
+  header = addWidget(std::make_unique<Wt::WText>(""));
+  header->setStyleClass("lastUpdate");
+
+  // Panels
+  selectedPanel = addWidget(std::make_unique<Wt::WPanel>());
+  selectedPanel->addStyleClass("centered-example");
+  selectedPanel->setCollapsible(true);
+  selectedPanel->collapse();
+  selected = selectedPanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
+  readyForDesignPanel = addWidget(std::make_unique<Wt::WPanel>());
+  readyForDesignPanel->addStyleClass("centered-example");
+  readyForDesignPanel->setCollapsible(true);
+  readyForDesign = readyForDesignPanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
+  designProgressPanel = addWidget(std::make_unique<Wt::WPanel>());
+  designProgressPanel->addStyleClass("centered-example");
+  designProgressPanel->setCollapsible(true);
+  designProgess = designProgressPanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
+  designDonePanel = addWidget(std::make_unique<Wt::WPanel>());
+  designDonePanel->addStyleClass("centered-example");
+  designDonePanel->setCollapsible(true);
+  designDonePanel->collapse();
+  designDone = designDonePanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
+  readyForImplPanel = addWidget(std::make_unique<Wt::WPanel>());
+  readyForImplPanel->addStyleClass("centered-example");
+  readyForImplPanel->setCollapsible(true);
+  readyForImpl = readyForImplPanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
+  implProgressPanel = addWidget(std::make_unique<Wt::WPanel>());
+  implProgressPanel->addStyleClass("centered-example");
+  implProgressPanel->setCollapsible(true);
+  implProgess = implProgressPanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
+  postponedPanel = addWidget(std::make_unique<Wt::WPanel>());
+  postponedPanel->addStyleClass("centered-example");
+  postponedPanel->setCollapsible(true);
+  postponed = postponedPanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
+  donePanel = addWidget(std::make_unique<Wt::WPanel>());
+  donePanel->addStyleClass("centered-example");
+  donePanel->setCollapsible(true);
+  done = donePanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
+  removedPanel = addWidget(std::make_unique<Wt::WPanel>());
+  removedPanel->addStyleClass("centered-example");
+  removedPanel->setCollapsible(true);
+  removedPanel->collapse();
+  removed = removedPanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
+
+  // Dialog to update the Kanban limits
+  auto editLimitsAnchor = addWidget(std::make_unique<Wt::WAnchor>());
+  editLimitsAnchor->addWidget(std::make_unique<Wt::WText>("Edit Kanban limits (KEEP OUT!)"));
+  editLimitsAnchor->addStyleClass("keepOut");
+  editLimitsAnchor->clicked().connect([&] {
+    limitDialog_ = std::make_unique<KanbanLimitDialog>(session_);
+    limitDialog_->show();
+  });
+
+  // initial update
   update();
+
+  // update timer
   updateTimer.setInterval(std::chrono::milliseconds(10000));
   updateTimer.timeout().connect([this] { update(); });
   updateTimer.start();
 }
 
 void Welcome::update() {
-  clear();
-
   auto user = session_.user();
 
   dbo::Transaction transaction(session_.session_);
@@ -40,9 +95,7 @@ void Welcome::update() {
   auto infoAge = std::time(nullptr) - lastUpdate;
   auto updateIn = 62 - infoAge;
   std::string sLastUpdate = std::ctime(&lastUpdate);
-  auto header = addWidget(std::make_unique<Wt::WText>("Last database update: " + sLastUpdate + " (" +
-      std::to_string(infoAge) + " seconds ago). Auto-reload in " + std::to_string(updateIn) + " seconds."));
-  header->setStyleClass("lastUpdate");
+  header->setText("Last database update: " + sLastUpdate + " (" + std::to_string(infoAge) + " seconds ago).");
 
   // Set refresh timer
   updateTimer.setInterval(std::chrono::milliseconds(updateIn * 1000));
@@ -58,23 +111,20 @@ void Welcome::update() {
                .where("isDesign = 0")
                .orderBy("lastChange")
                .resultList();
-  auto selectedPanel = addWidget(std::make_unique<Wt::WPanel>());
   if(limit->preselected > 0) {
     selectedPanel->setTitle(WString("Preselected ({1}/{2})").arg(issues.size()).arg(limit->preselected));
     if(issues.size() > size_t(limit->preselected)) {
-      selectedPanel->titleBarWidget()->addStyleClass("limitExceeded");
+      selectedPanel->titleBarWidget()->removeStyleClass("limitMatched");
+      selectedPanel->titleBarWidget()->setStyleClass("limitExceeded");
     }
     else if(issues.size() == size_t(limit->preselected)) {
-      selectedPanel->titleBarWidget()->addStyleClass("limitMatched");
+      selectedPanel->titleBarWidget()->removeStyleClass("limitExceeded");
+      selectedPanel->titleBarWidget()->setStyleClass("limitMatched");
     }
   }
   else {
     selectedPanel->setTitle(WString("Preselected ({1})").arg(issues.size()));
   }
-  selectedPanel->addStyleClass("centered-example");
-  selectedPanel->setCollapsible(true);
-  selectedPanel->collapse();
-  auto selected = selectedPanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
   showIssues(issues, selected);
 
   // Ready for design
@@ -87,22 +137,20 @@ void Welcome::update() {
                .where("isDesign = 1")
                .orderBy("lastChange")
                .resultList();
-  auto readyForDesignPanel = addWidget(std::make_unique<Wt::WPanel>());
   if(limit->readyForDesign > 0) {
     readyForDesignPanel->setTitle(WString("Ready for design ({1}/{2})").arg(issues.size()).arg(limit->readyForDesign));
     if(issues.size() > size_t(limit->readyForDesign)) {
+      readyForDesignPanel->titleBarWidget()->removeStyleClass("limitMatched");
       readyForDesignPanel->titleBarWidget()->addStyleClass("limitExceeded");
     }
     else if(issues.size() == size_t(limit->readyForDesign)) {
+      readyForDesignPanel->titleBarWidget()->removeStyleClass("limitExceeded");
       readyForDesignPanel->titleBarWidget()->addStyleClass("limitMatched");
     }
   }
   else {
     readyForDesignPanel->setTitle(WString("Ready for design ({1})").arg(issues.size()));
   }
-  readyForDesignPanel->addStyleClass("centered-example");
-  readyForDesignPanel->setCollapsible(true);
-  auto readyForDesign = readyForDesignPanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
   showIssues(issues, readyForDesign);
 
   // Design in progress
@@ -113,23 +161,21 @@ void Welcome::update() {
                .where("isPostponed = 0")
                .orderBy("lastChange")
                .resultList();
-  auto designProgressPanel = addWidget(std::make_unique<Wt::WPanel>());
   if(limit->designInProgress > 0) {
     designProgressPanel->setTitle(
         WString("Design in progress ({1}/{2})").arg(issues.size()).arg(limit->designInProgress));
     if(issues.size() > size_t(limit->designInProgress)) {
+      designProgressPanel->titleBarWidget()->removeStyleClass("limitMatched");
       designProgressPanel->titleBarWidget()->addStyleClass("limitExceeded");
     }
     else if(issues.size() == size_t(limit->designInProgress)) {
+      designProgressPanel->titleBarWidget()->removeStyleClass("limitExceeded");
       designProgressPanel->titleBarWidget()->addStyleClass("limitMatched");
     }
   }
   else {
     designProgressPanel->setTitle(WString("Design in progress ({1})").arg(issues.size()));
   }
-  designProgressPanel->addStyleClass("centered-example");
-  designProgressPanel->setCollapsible(true);
-  auto designProgess = designProgressPanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
   showIssues(issues, designProgess);
 
   // Childs of design tickets
@@ -141,24 +187,21 @@ void Welcome::update() {
                .where("isPostponed = 0")
                .orderBy("lastChange")
                .resultList();
-  auto designDonePanel = addWidget(std::make_unique<Wt::WPanel>());
   if(limit->childsOfDesign > 0) {
     designDonePanel->setTitle(
         WString("Childs of design tickets ({1}/{2})").arg(issues.size()).arg(limit->childsOfDesign));
     if(issues.size() > size_t(limit->childsOfDesign)) {
+      designDonePanel->titleBarWidget()->removeStyleClass("limitMatched");
       designDonePanel->titleBarWidget()->addStyleClass("limitExceeded");
     }
     else if(issues.size() == size_t(limit->childsOfDesign)) {
+      designDonePanel->titleBarWidget()->removeStyleClass("limitExceeded");
       designDonePanel->titleBarWidget()->addStyleClass("limitMatched");
     }
   }
   else {
     designDonePanel->setTitle(WString("Childs of design tickets ({1})").arg(issues.size()));
   }
-  designDonePanel->addStyleClass("centered-example");
-  designDonePanel->setCollapsible(true);
-  designDonePanel->collapse();
-  auto designDone = designDonePanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
   showIssues(issues, designDone);
 
   // Ready for implementation
@@ -169,23 +212,21 @@ void Welcome::update() {
                .where("isPostponed = 0")
                .orderBy("lastChange")
                .resultList();
-  auto readyForImplPanel = addWidget(std::make_unique<Wt::WPanel>());
   if(limit->readyForImplementation > 0) {
     readyForImplPanel->setTitle(
         WString("Ready for implementation ({1}/{2})").arg(issues.size()).arg(limit->readyForImplementation));
     if(issues.size() > size_t(limit->readyForImplementation)) {
+      readyForImplPanel->titleBarWidget()->removeStyleClass("limitMatched");
       readyForImplPanel->titleBarWidget()->addStyleClass("limitExceeded");
     }
     else if(issues.size() == size_t(limit->readyForImplementation)) {
+      readyForImplPanel->titleBarWidget()->removeStyleClass("limitExceeded");
       readyForImplPanel->titleBarWidget()->addStyleClass("limitMatched");
     }
   }
   else {
     readyForImplPanel->setTitle(WString("Ready for implementation ({1})").arg(issues.size()));
   }
-  readyForImplPanel->addStyleClass("centered-example");
-  readyForImplPanel->setCollapsible(true);
-  auto readyForImpl = readyForImplPanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
   showIssues(issues, readyForImpl);
 
   // Implementation in progress
@@ -196,23 +237,21 @@ void Welcome::update() {
                .where("isPostponed = 0")
                .orderBy("lastChange")
                .resultList();
-  auto implProgressPanel = addWidget(std::make_unique<Wt::WPanel>());
   if(limit->implementationInProgress > 0) {
     implProgressPanel->setTitle(
         WString("Implementation in progress ({1}/{2})").arg(issues.size()).arg(limit->implementationInProgress));
     if(issues.size() > size_t(limit->implementationInProgress)) {
+      implProgressPanel->titleBarWidget()->removeStyleClass("limitMatched");
       implProgressPanel->titleBarWidget()->addStyleClass("limitExceeded");
     }
     else if(issues.size() == size_t(limit->implementationInProgress)) {
+      implProgressPanel->titleBarWidget()->removeStyleClass("limitExceeded");
       implProgressPanel->titleBarWidget()->addStyleClass("limitMatched");
     }
   }
   else {
     implProgressPanel->setTitle(WString("Implementation in progress ({1})").arg(issues.size()));
   }
-  implProgressPanel->addStyleClass("centered-example");
-  implProgressPanel->setCollapsible(true);
-  auto implProgess = implProgressPanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
   showIssues(issues, implProgess);
 
   // Postponed
@@ -221,22 +260,20 @@ void Welcome::update() {
                .where("isRemoved != 1")
                .orderBy("lastChange")
                .resultList();
-  auto postponedPanel = addWidget(std::make_unique<Wt::WPanel>());
   if(limit->postponed > 0) {
     postponedPanel->setTitle(WString("Postponed ({1}/{2})").arg(issues.size()).arg(limit->postponed));
     if(issues.size() > size_t(limit->postponed)) {
+      postponedPanel->titleBarWidget()->removeStyleClass("limitMatched");
       postponedPanel->titleBarWidget()->addStyleClass("limitExceeded");
     }
     else if(issues.size() == size_t(limit->postponed)) {
+      postponedPanel->titleBarWidget()->removeStyleClass("limitExceeded");
       postponedPanel->titleBarWidget()->addStyleClass("limitMatched");
     }
   }
   else {
     postponedPanel->setTitle(WString("Postponed ({1})").arg(issues.size()));
   }
-  postponedPanel->addStyleClass("centered-example");
-  postponedPanel->setCollapsible(true);
-  auto postponed = postponedPanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
   showIssues(issues, postponed);
 
   // Done
@@ -246,36 +283,19 @@ void Welcome::update() {
                .where("isRemoved != 1")
                .orderBy("lastChange")
                .resultList();
-  auto donePanel = addWidget(std::make_unique<Wt::WPanel>());
   donePanel->setTitle(WString("Done ({1})").arg(issues.size()));
-  donePanel->addStyleClass("centered-example");
-  donePanel->setCollapsible(true);
-  auto done = donePanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
   showIssues(issues, done);
 
   // Removed
   issues = session_.session_.find<Issue>().where("isRemoved = 1").orderBy("lastChange DESC").resultList();
-  auto removedPanel = addWidget(std::make_unique<Wt::WPanel>());
   removedPanel->setTitle(WString("Removed ({1})").arg(issues.size()));
-  removedPanel->addStyleClass("centered-example");
-  removedPanel->setCollapsible(true);
-  removedPanel->collapse();
-  auto removed = removedPanel->setCentralWidget(std::make_unique<Wt::WContainerWidget>());
   showIssues(issues, removed);
-
-  // Dialog to update the Kanban limits
-  auto editLimitsAnchor = addWidget(std::make_unique<Wt::WAnchor>());
-  editLimitsAnchor->addWidget(std::make_unique<Wt::WText>("Edit Kanban limits (KEEP OUT!)"));
-  editLimitsAnchor->addStyleClass("keepOut");
-  editLimitsAnchor->clicked().connect([&] {
-    limitDialog_ = std::make_unique<KanbanLimitDialog>(session_);
-    limitDialog_->show();
-  });
 }
 
 /**********************************************************************************************************************/
 
 void Welcome::showIssues(Wt::Dbo::collection<Wt::Dbo::ptr<Issue>>& issues, Wt::WContainerWidget* widget) {
+  widget->clear();
   auto now =
       std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
   for(auto issue : issues) {
