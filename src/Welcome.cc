@@ -266,6 +266,7 @@ void Welcome::update() {
   // Dialog to update the Kanban limits
   auto editLimitsAnchor = addWidget(std::make_unique<Wt::WAnchor>());
   editLimitsAnchor->addWidget(std::make_unique<Wt::WText>("Edit Kanban limits (KEEP OUT!)"));
+  editLimitsAnchor->addStyleClass("keepOut");
   editLimitsAnchor->clicked().connect([&] {
     limitDialog_ = std::make_unique<KanbanLimitDialog>(session_);
     limitDialog_->show();

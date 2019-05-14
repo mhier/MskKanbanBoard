@@ -26,8 +26,9 @@ KanbanLimitDialog::KanbanLimitDialog(Session& session) : session_(session) {
   titleBar()->clear();
   titleBar()->addWidget(std::make_unique<Wt::WText>("<h4>Edit Kanban limits</h4>"));
 
-  contents()->addWidget(std::make_unique<Wt::WText>("<p>Please do not edit these limits without consent of the MSK "
-                                                    "software group. A limit of 0 will disable the limit.</p>"));
+  contents()->addWidget(
+      std::make_unique<Wt::WText>("<p class=\"alert\">Please do not edit these limits without consent of the MSK "
+                                  "software group.</p><p>A limit of 0 will disable the limit.</p>"));
 
   auto table = contents()->addWidget(std::make_unique<WTable>());
   table->setHeaderCount(1);

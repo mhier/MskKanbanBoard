@@ -84,6 +84,14 @@
 background-color: #D0EEEE;
 }
 
+.keepOut {
+  cursor: not-allowed;
+}
+.alert {
+  color: red;
+  font-weight: bold;
+}
+
 h5 {
   font-weight: bold;
 }
