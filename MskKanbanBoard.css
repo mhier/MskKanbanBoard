@@ -66,6 +66,40 @@
   bottom: 5px;
   position: absolute;
 }
+.days0 {
+  color: #008000;
+}
+.days1 {
+  color: #208000;
+}
+.days2 {
+  color: #408000;
+}
+.days3 {
+  color: #608000;
+}
+.days4 {
+  color: #808000;
+}
+.days5 {
+  color: #A08000;
+}
+.days6 {
+  color: #B08000;
+}
+.days7 {
+  color: #C06000;
+}
+.days8 {
+  color: #D04000;
+}
+.days9 {
+  color: #E02000;
+}
+.days10 {
+  color: #FF0000;
+}
+
 .design {
   background-color: #7FFFFF;
 }

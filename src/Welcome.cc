@@ -354,6 +354,8 @@ void Welcome::showIssues(Wt::Dbo::collection<Wt::Dbo::ptr<Issue>>& issues, Wt::W
     }
     auto w_age = container->addWidget(std::make_unique<WText>(s_age));
     w_age->setStyleClass("age");
+    int days_age = std::min(int(std::floor(n_age / 86400.)), 10);
+    w_age->addStyleClass("days" + std::to_string(days_age));
 
     if(!issue->isOpen) {
       container->clicked().connect([=] {
